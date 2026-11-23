@@ -1,0 +1,16 @@
+city,period,mode,energy_base,energy,energy_pct,tdis_base,tdis,tdis_pct,idis_base,idis
+Chicago,Peak winter,eco,1.79,1.727,-3.5,11.84,11.7,-1.2,0.0,0.0
+Chicago,Peak winter,comfort,1.79,1.763,-1.5,11.84,7.4,-37.5,0.0,0.0
+Chicago,Typical winter,eco,1.052,0.905,-14.0,7.7,7.83,1.6,0.0,0.0
+Chicago,Typical winter,comfort,1.052,0.935,-11.1,7.7,4.84,-37.2,0.0,0.0
+Chicago,Spring/autumn,eco,0.312,0.17,-45.4,4.99,1.33,-73.3,0.0,7.3
+Chicago,Spring/autumn,comfort,0.312,0.187,-40.1,4.99,0.99,-80.1,0.0,7.3
+Chicago,Typical summer,eco,0.848,0.767,-9.5,2.67,4.48,67.9,20.3,0.0
+Chicago,Typical summer,comfort,0.848,0.798,-5.9,2.67,2.05,-23.0,20.3,0.0
+Chicago,Peak summer,eco,2.188,2.187,-0.0,8.61,7.55,-12.3,80.0,0.0
+Chicago,Peak summer,comfort,2.188,2.228,1.9,8.61,4.51,-47.6,80.0,0.0
+New Delhi,Spring (Mar),eco,1.143,1.038,-9.1,3.96,1.92,-51.5,376.2,0.0
+New Delhi,Spring (Mar),comfort,1.143,1.066,-6.7,3.96,0.16,-95.9,376.2,0.0
+New Delhi,Monsoon (Aug),eco,1.234,1.358,10.1,4.8,6.17,28.5,124.2,63.3
+New Delhi,Peak summer (May),eco,1.395,1.473,5.6,5.76,6.21,7.9,81.1,21.6
+New Delhi,Peak summer (May),comfort,1.395,1.502,7.6,5.76,4.42,-23.2,81.1,27.3

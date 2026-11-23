@@ -1,0 +1,5 @@
+SENSE  zone temp 21.6 C | CO2 910 ppm | cooling set point 22.0 C | OA damper 32 %
+DECIDE zone at 21.6 C is overcooled -> cooling set point 22.0 -> 23.8 C ; CO2 910 > 750 ppm -> OA damper 32 -> 60 %
+ACT    BMS now reports set point 23.8 C, OA damper 60 %
+OVERRIDE operator writes 22.5 C at priority 8 -> BMS uses 22.5 C (human wins)
+RELEASE Anukul relinquishes -> BMS back to its own default: set point 22.0 C, damper 32 %

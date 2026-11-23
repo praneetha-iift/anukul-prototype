@@ -1,0 +1,310 @@
+<title>Anukul Control Room</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap">
+<style>
+/* Layout: control-room console - header strip, floor plan + action feed side by side, verification below. Square edges, dotted frames. */
+:root{
+  --bg:#f5f7f6; --panel:#ffffff; --ink:#13231d; --muted:#5b6b64; --line:#c9d3cf;
+  --accent:#009530; --accent-ink:#ffffff; --deep:#0b3d2e;
+  --cool:#2f6fb3; --ok:#2e8b57; --warn:#c77700; --bad:#c2410c;
+  --base:#8a949a;
+  --f-display:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1714; --panel:#16211d; --ink:#e3ece8; --muted:#97a8a1; --line:#2f3f39;
+  --accent:#3dcd58; --accent-ink:#06210f; --deep:#9fe0b4; --cool:#6fa8e6; --ok:#5cc489; --warn:#f0a43a; --bad:#f07a4a; --base:#7d888d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1714; --panel:#16211d; --ink:#e3ece8; --muted:#97a8a1; --line:#2f3f39;
+  --accent:#3dcd58; --accent-ink:#06210f; --deep:#9fe0b4; --cool:#6fa8e6; --ok:#5cc489; --warn:#f0a43a; --bad:#f07a4a; --base:#7d888d; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:20px}
+h1,h2{font-family:var(--f-display);font-weight:700;margin:0;text-wrap:balance;color:var(--deep)}
+h1{font-size:1.9rem;letter-spacing:-.01em}
+h2{font-size:1.2rem}
+.eyebrow{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.frame{border:1.5px dotted var(--line);padding:16px;background:var(--panel)}
+header{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
+header .sub{color:var(--muted);max-width:60ch}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+select,button{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);padding:7px 10px;border-radius:0}
+button{cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.seg{display:inline-flex;border:1px solid var(--line)}
+.seg button{border:0;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--deep);color:var(--panel)}
+.tabs{display:flex;gap:0;border-bottom:1.5px dotted var(--line)}
+.tabs button{border:0;background:none;padding:10px 14px;color:var(--muted);font-weight:500}
+.tabs button[aria-selected="true"]{color:var(--ink);box-shadow:inset 0 -3px 0 var(--accent)}
+.grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.plan svg{width:100%;height:auto;display:block}
+.scrub{display:flex;gap:10px;align-items:center;margin-top:12px}
+.scrub input{flex:1;accent-color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.8rem;color:var(--muted);margin-top:8px}
+.sw{display:inline-block;width:12px;height:12px;vertical-align:-2px;margin-right:4px;border:1px solid var(--line)}
+.feed{display:grid;gap:10px;max-height:560px;overflow:auto;padding-right:4px}
+.card{border:1px solid var(--line);padding:12px;display:grid;gap:6px;background:var(--panel)}
+.card .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.chip{font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border:1px solid currentColor}
+.c-guard{color:var(--cool)} .c-sat{color:var(--warn)} .c-dcv{color:var(--ok)} .c-night{color:var(--deep)}
+.card p{margin:0}
+.card .why{color:var(--muted);font-size:.86rem}
+.card .acts{display:flex;gap:8px;flex-wrap:wrap}
+.card .acts button{padding:4px 10px;font-size:.85rem}
+.card .acts .primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.state{font-size:.8rem;font-weight:600}
+.empty{color:var(--muted);padding:20px;text-align:center;border:1px dotted var(--line)}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:620px){.tiles{grid-template-columns:minmax(0,1fr)}}
+.tile{border-top:3px solid var(--deep);padding:10px 2px;display:grid;gap:2px}
+.tile .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:500}
+.tile .d{font-size:.85rem}
+.good{color:var(--ok)} .badc{color:var(--bad)}
+.chart svg{width:100%;height:auto;display:block}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+th,td{padding:7px 8px;border-bottom:1px dotted var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+th{font-weight:600;color:var(--muted);font-size:.76rem;letter-spacing:.04em;text-transform:uppercase}
+.note{color:var(--muted);font-size:.82rem;max-width:80ch}
+.prose{max-width:72ch;display:grid;gap:10px}
+.prose p{margin:0}
+.bar{height:14px;background:var(--line);position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--accent)}
+.bar b{position:absolute;inset:0 auto 0 0;background:var(--warn)}
+.rows{display:grid;gap:12px}
+.row{display:grid;grid-template-columns:120px minmax(0,1fr) 70px;gap:10px;align-items:center}
+@media (max-width:520px){.row{grid-template-columns:90px minmax(0,1fr) 56px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Anukul · facility manager console · prototype</div>
+      <h1>Anukul Control Room</h1>
+      <div class="sub">Replays a simulated 5-zone office (BOPTEST, 1,663 m²) under its normal controls and under Anukul. Pick a day, press play, and approve or dismiss what Anukul suggests.</div>
+    </div>
+    <div class="controls">
+      <label class="eyebrow" for="scen">Day</label>
+      <select id="scen"></select>
+      <div class="seg" role="group" aria-label="Approval mode">
+        <button id="m-approve" aria-pressed="true">Ask me first</button>
+        <button id="m-auto" aria-pressed="false">Autopilot</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="t-live" aria-selected="true">Live replay</button>
+    <button role="tab" id="t-verify" aria-selected="false">Verified results</button>
+    <button role="tab" id="t-real" aria-selected="false">Real building data</button>
+  </nav>
+
+  <section id="v-live" class="grid">
+    <div class="frame plan">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+        <h2>Floor 1 · zones</h2>
+        <div class="seg" role="group" aria-label="Which run to show">
+          <button id="r-base" aria-pressed="false">Without Anukul</button>
+          <button id="r-anu" aria-pressed="true">With Anukul</button>
+        </div>
+      </div>
+      <svg id="plan" viewBox="0 0 520 330" role="img" aria-label="Floor plan with zone temperatures"></svg>
+      <div class="scrub">
+        <button id="play" aria-label="Play">▶ Play</button>
+        <input id="time" type="range" min="0" max="95" value="40" aria-label="Time of day">
+        <span id="clock" class="mono">10:00</span>
+      </div>
+      <div class="legend">
+        <span><i class="sw" style="background:#2f6fb3"></i>below 20 °C</span>
+        <span><i class="sw" style="background:#2e8b57"></i>20–24 °C comfort band</span>
+        <span><i class="sw" style="background:#c2410c"></i>above 24 °C</span>
+        <span>CO₂ limit 894 ppm</span>
+      </div>
+      <div id="now" class="tiles" style="margin-top:14px"></div>
+    </div>
+    <div class="frame">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">
+        <h2>What Anukul is doing</h2>
+        <span id="feedcount" class="eyebrow"></span>
+      </div>
+      <div id="feed" class="feed" style="margin-top:10px"></div>
+    </div>
+    <div class="frame chart" style="grid-column:1/-1">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">
+        <h2>Verify · building HVAC power over this day</h2>
+        <span id="daytot" class="mono"></span>
+      </div>
+      <svg id="pchart" viewBox="0 0 900 240" role="img" aria-label="HVAC power through the day, with and without Anukul"></svg>
+      <div class="legend"><span><i class="sw" style="background:var(--base)"></i>Without Anukul</span><span><i class="sw" style="background:var(--accent)"></i>With Anukul</span><span>Dashed line = time shown on floor plan</span></div>
+    </div>
+  </section>
+
+  <section id="v-verify" hidden>
+    <div class="frame" style="display:grid;gap:14px">
+      <h2>BOPTEST results, every test period</h2>
+      <p id="klead" style="margin:0;max-width:72ch"></p>
+      <p class="note">Each block is a BOPTEST test period after a 7-day warm-up, scored by BOPTEST's own KPI calculator. Chicago is the official test case (14 days each). New Delhi swaps in ISHRAE-2014 weather with the Chicago-sized plant unchanged; its periods are shorter because the simulation stalled later in those windows, and the monsoon Comfort run did not finish. Energy is HVAC electricity per m² of floor. Thermal discomfort is kelvin-hours outside the 20–24 °C band while occupied (summed over zones). Air-quality discomfort is ppm-hours above the 894 ppm CO₂ limit. Eco runs night pre-cooling, supply-air reset and CO₂-led fresh air. Comfort adds the comfort guard.</p>
+      <div class="tablewrap"><table id="ktable"></table></div>
+      <p class="note" id="knote"></p>
+    </div>
+  </section>
+
+  <section id="v-real" hidden>
+    <div class="frame" style="display:grid;gap:16px">
+      <h2>What the same rules find in a real office</h2>
+      <div class="prose">
+        <p>CU-BEMS is an open dataset from a 7-storey office building at Chulalongkorn University, Bangkok: one-minute readings of every split AC, lighting and plug circuit plus zone temperature, for all of 2019. Bangkok's climate is close to Mumbai's or Chennai's, and its split ACs are common in Indian offices too.</p>
+        <p>Anukul's Sense step treats a zone as occupied when its lights and plugs draw clearly more than their own night-time standby. It then asks two questions: was the AC running in an empty zone, and was it running while the zone sat below 23 °C?</p>
+      </div>
+      <div id="realrows" class="rows"></div>
+      <p class="note">Overcooling saving is an estimate. It uses BEE's figure of about 6% of AC electricity per 1 °C of set-point raise (upper) and half that (lower), applied up to 4 °C below 24 °C. The empty-zone figure is measured energy in intervals with no sign of people. Zone sensors may sit near AC outlets, so overcooling may be overstated.</p>
+    </div>
+  </section>
+</div>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+const D = JSON.parse(document.getElementById('data').textContent);
+const ZONES = [['nor','North'],['eas','East'],['sou','South'],['wes','West'],['cor','Core']];
+const LEVER = {
+  guard:{name:'Comfort guard', why:'Keeps every zone a little inside the 20–24 °C band so no one is too hot or cold.'},
+  sat:{name:'Supply-air reset', why:'No zone needs strong cooling, so the air handler sends slightly warmer air. Less chilling, less reheating.'},
+  dcv:{name:'Fresh air on demand', why:'Outdoor air follows how many people are in and the measured CO₂, instead of one fixed setting.'},
+  night:{name:'Night pre-cool', why:'Outside is cooler than inside before work starts, so the fans flush the building with free night air.'}
+};
+const SCEN_LABEL = {typical_cool_day:'typical summer',peak_cool_day:'peak summer',mix_day:'spring / autumn',typical_heat_day:'typical winter',peak_heat_day:'peak winter',
+  delhi_peak_cool:'peak summer (May)',delhi_monsoon:'monsoon (Aug)',delhi_spring:'spring (Mar)',delhi_winter:'winter (Jan)'};
+const MODE_LABEL={baseline:'Normal controls',eco:'Anukul Eco',comfort:'Anukul Comfort'};
+const $ = s => document.querySelector(s);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let key = Object.keys(D.replay)[0], run = 'anukul', t = 40, playing = null, auto = false;
+const decisions = {}; // key -> state per grouped card
+
+const sel = $('#scen');
+Object.entries(D.replay).forEach(([k,r]) => { const o = document.createElement('option'); o.value=k;
+  o.textContent = `${r.city.split(' (')[0]} · ${SCEN_LABEL[r.scenario]||r.scenario}`; sel.appendChild(o); });
+sel.onchange = () => { key = sel.value; renderAll(); };
+
+function tColor(T){ if(T<20) return css('--cool'); if(T>24) return css('--bad'); return css('--ok'); }
+const hhmm = i => { const m=(i+1)*15; return String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); };
+
+function plan(){
+  const r = D.replay[key][run], svg = $('#plan');
+  const rect = {nor:[10,10,500,70], sou:[10,250,500,70], wes:[10,80,90,170], eas:[420,80,90,170], cor:[100,80,320,170]};
+  let h = '';
+  ZONES.forEach(([z,name]) => { const [x,y,w,hh]=rect[z]; const T=r.T[z][t], C=r.CO2[z][t];
+    h += `<rect x="${x}" y="${y}" width="${w}" height="${hh}" fill="${tColor(T)}" stroke="${css('--panel')}" stroke-width="3"/>`;
+    h += `<text x="${x+w/2}" y="${y+hh/2-14}" text-anchor="middle" fill="#ffffff" font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="600">${name}</text>`;
+    h += `<text x="${x+w/2}" y="${y+hh/2+4}" text-anchor="middle" fill="#ffffff" font-family="IBM Plex Mono, monospace" font-size="14">${T.toFixed(1)} °C</text>`;
+    h += `<text x="${x+w/2}" y="${y+hh/2+21}" text-anchor="middle" fill="#ffffff" font-family="IBM Plex Mono, monospace" font-size="12">${C} ppm${C>894?' ▲':''}</text>`;
+  });
+  svg.innerHTML = h;
+  $('#clock').textContent = hhmm(t);
+  const b = D.replay[key].baseline, a = D.replay[key].anukul, out = r.TOut[t];
+  const inBand = x => ZONES.filter(([z]) => x.T[z][t]>=19.95 && x.T[z][t]<=24.05).length;
+  const occ = (t+1)*15/60 >= 6 && (t+1)*15/60 < 19;
+  $('#now').innerHTML = `
+    <div class="tile"><span class="eyebrow">Outdoor</span><span class="v">${out.toFixed(1)} °C</span><span class="d">${occ?'office occupied':'office closed'}</span></div>
+    <div class="tile"><span class="eyebrow">Zones in comfort band</span><span class="v">${inBand(r)} / 5</span><span class="d">${run==='anukul'?'without Anukul: '+inBand(b):'with Anukul: '+inBand(a)}</span></div>
+    <div class="tile"><span class="eyebrow">HVAC power now</span><span class="v">${r.P[t].toFixed(1)} kW</span><span class="d">${run==='anukul'?'without Anukul: '+b.P[t].toFixed(1):'with Anukul: '+a.P[t].toFixed(1)} kW</span></div>`;
+}
+
+function groups(){
+  const dec = D.replay[key].decisions, g = [];
+  dec.forEach(d => { const last = g[g.length-1];
+    if (last && last.lever===d.lever && d.h - last.h1 <= 0.5) { last.h1 = d.h; last.texts.push(d.text); }
+    else g.push({lever:d.lever, h0:d.h, h1:d.h, texts:[d.text]}); });
+  return g;
+}
+const ZN = {cor:'Core',eas:'East',nor:'North',sou:'South',wes:'West'};
+const nice = s => s.replace(/ - /g,' → ').replace(/->/g,'→').replace(/\b(cor|eas|nor|sou|wes)\b/g, m => ZN[m]).replace(/(\d) C\b/g,'$1 °C').replace(/outdoor-air damper (0\.\d+)/, (m,v) => 'outdoor-air damper '+Math.round(v*100)+'% open').replace(/zone\(s\)/,'zones');
+const fmtH = h => String(Math.floor(h)%24).padStart(2,'0')+':'+String(Math.round((h%1)*60)).padStart(2,'0');
+function feed(){
+  const nowH = (t+1)*0.25, g = groups().filter(x => x.h0 <= nowH + 1e-6).reverse();
+  const st = decisions[key] || (decisions[key] = {});
+  $('#feedcount').textContent = `${g.length} actions so far today`;
+  if(!g.length){ $('#feed').innerHTML = '<div class="empty">Nothing to do yet. Anukul only acts when a rule fires; press play or move the time slider.</div>'; return; }
+  $('#feed').innerHTML = g.map(x => { const id = x.lever+'@'+x.h0, s = auto ? 'applied' : st[id];
+    const L = LEVER[x.lever]||{name:x.lever,why:''};
+    const span = x.h1>x.h0 ? `${fmtH(x.h0)}–${fmtH(x.h1)}` : fmtH(x.h0);
+    const latest = x.texts[x.texts.length-1];
+    return `<article class="card"><div class="top"><span class="chip c-${x.lever}">${L.name}</span><span class="mono">${span}</span></div>
+      <p>${nice(latest)}</p><p class="why">${x.lever==='sat' && !/^0 zone/.test(latest) ? 'Zones are asking for cooling again, so supply air steps back down toward 12 °C.' : L.why}</p>
+      ${s ? `<span class="state ${s==='dismissed'?'badc':'good'}">${s==='applied'?(auto?'Applied automatically':'Applied'):s==='scheduled'?'Scheduled for tomorrow':'Dismissed. BMS keeps its own setting'}</span>`
+          : `<div class="acts"><button class="primary" data-id="${id}" data-s="applied">Apply</button><button data-id="${id}" data-s="scheduled">Schedule</button><button data-id="${id}" data-s="dismissed">Dismiss</button></div>`}
+    </article>`; }).join('');
+  $('#feed').querySelectorAll('button[data-id]').forEach(b => b.onclick = () => { st[b.dataset.id] = b.dataset.s; feed(); });
+}
+
+function pchart(){
+  const r = D.replay[key], b = r.baseline.P, a = r.anukul.P, W=900, H=240, L=46, R=26, T=12, B=28;
+  const max = Math.ceil(Math.max(...b,...a)/5)*5 || 5, x = i => L + i*(W-L-R)/95, y = v => T + (H-T-B)*(1 - v/max);
+  const line = (arr,c,w) => `<polyline fill="none" stroke="${c}" stroke-width="${w}" points="${arr.map((v,i)=>x(i).toFixed(1)+','+y(v).toFixed(1)).join(' ')}"/>`;
+  let h = '';
+  for (let v=0; v<=max; v+=max/5){ h += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="${css('--line')}" stroke-width="1"/>
+    <text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="${css('--muted')}" font-family="IBM Plex Mono, monospace">${v.toFixed(0)}</text>`; }
+  [0,6,12,18,24].forEach(hr => { const i = hr*4-1; const xx = x(Math.max(0,Math.min(95,i)));
+    h += `<text x="${xx}" y="${H-8}" text-anchor="middle" font-size="11" fill="${css('--muted')}" font-family="IBM Plex Mono, monospace">${String(hr).padStart(2,'0')}:00</text>`; });
+  h += `<text x="${L}" y="${T-2}" font-size="11" fill="${css('--muted')}" font-family="IBM Plex Sans, sans-serif">kW</text>`;
+  const area = `<polygon fill="${css('--accent')}" fill-opacity="0.12" points="${x(0)},${y(0)} ${a.map((v,i)=>x(i).toFixed(1)+','+y(v).toFixed(1)).join(' ')} ${x(95)},${y(0)}"/>`;
+  h += area + line(b, css('--base'), 2) + line(a, css('--accent'), 2.5);
+  h += `<line x1="${x(t)}" x2="${x(t)}" y1="${T}" y2="${H-B}" stroke="${css('--ink')}" stroke-dasharray="4 4"/>`;
+  $('#pchart').innerHTML = h;
+  const eb = b.reduce((s,v)=>s+v,0)/4, ea = a.reduce((s,v)=>s+v,0)/4, pct = 100*(ea-eb)/eb;
+  $('#daytot').innerHTML = `${eb.toFixed(0)} → ${ea.toFixed(0)} kWh <span class="${pct<=0?'good':'badc'}">(${pct>0?'+':''}${pct.toFixed(1)}%)</span>`;
+}
+
+function ktable(){
+  const rows = D.kpis, by = {};
+  const ORD = ['peak_heat_day','typical_heat_day','mix_day','typical_cool_day','peak_cool_day','delhi_spring','delhi_monsoon','delhi_peak_cool'];
+  [...rows].sort((a,b) => ORD.indexOf(a.scenario) - ORD.indexOf(b.scenario)).forEach(r => (by[r.city+'|'+r.scenario] ||= {})[r.mode] = r);
+  const pc = (v,b) => { const x = 100*(v-b)/b; return Math.abs(x) < 0.5 ? '0%' : `${x>0?'+':''}${x.toFixed(0)}%`; };
+  const cls = (v,b) => v<=b+0.5*Math.max(Math.abs(b),1)/100 ? 'good' : 'badc';
+  let h = '<thead><tr><th>Climate</th><th>Period · mode</th><th>Days</th><th>Energy kWh/m²</th><th>vs normal</th><th>Thermal K·h</th><th>vs normal</th><th>Air quality ppm·h</th><th>vs normal</th></tr></thead><tbody>';
+  Object.entries(by).forEach(([k,m]) => { const b = m.baseline; if(!b) return;
+    ['baseline','eco','comfort'].forEach(md => { const r = m[md]; if(!r) return;
+      h += `<tr><td>${md==='baseline'?r.city.split(' (')[0]:''}</td><td>${md==='baseline'?(SCEN_LABEL[r.scenario]||r.scenario)+' · ':''}${MODE_LABEL[md]}</td>
+      <td class="mono">${md==='baseline'?r.days:''}</td><td class="mono">${r.ener.toFixed(3)}</td><td class="mono ${md==='baseline'?'':cls(r.ener,b.ener)}">${md==='baseline'?'':pc(r.ener,b.ener)}</td>
+      <td class="mono">${r.tdis.toFixed(2)}</td><td class="mono ${md==='baseline'?'':cls(r.tdis,b.tdis)}">${md==='baseline'?'':pc(r.tdis,b.tdis)}</td>
+      <td class="mono">${r.idis.toFixed(0)}</td><td class="mono ${md==='baseline'?'':(r.idis<0.5?'good':cls(r.idis,b.idis))}">${md==='baseline'?'':(b.idis>0.5?pc(r.idis,b.idis):(r.idis>=0.5?'+'+r.idis.toFixed(0):'0'))}</td></tr>`; }); });
+  $('#ktable').innerHTML = h + '</tbody>';
+  const chi = rows.filter(r => r.city.startsWith('Chicago')), sum = (m,k) => chi.filter(r => r.mode===m).reduce((a,r) => a + r[k], 0);
+  const d = (m,k) => Math.abs(100*(sum(m,k)-sum('baseline',k))/sum('baseline',k)).toFixed(1);
+  $('#klead').innerHTML = `Across the five official Chicago periods, <b>Comfort</b> used <b>${d('comfort','ener')}% less</b> HVAC energy and cut thermal discomfort by <b>${d('comfort','tdis')}%</b>; CO₂ ppm-hours went from ${sum('baseline','idis').toFixed(0)} to ${sum('comfort','idis').toFixed(0)}. <b>Eco</b> used <b>${d('eco','ener')}% less</b> energy. In New Delhi, spring saves energy and fixes air quality; in peak heat and monsoon Anukul spends 6–10% more energy to bring in the fresh air the normal controls were withholding.`;
+  $('#knote').textContent = 'Green = same or better than the building\'s normal controls; orange = worse.';
+}
+
+function real(){
+  const e = D.cubems.estimate, w = D.cubems.waste;
+  $('#realrows').innerHTML = Object.entries(e).map(([fl,v]) => {
+    const name = fl.replace('2019Floor','Floor ').replace('.csv',''), emp = 100*v.empty_kwh/v.ac_kwh;
+    return `<div class="row"><span><b>${name}</b><br><span class="note mono">${Math.round(v.ac_kwh/1000)} MWh AC / yr</span></span>
+      <div class="bar" aria-label="saving share"><b style="width:${Math.min(100,v.pct_hi)}%"></b><i style="width:${emp}%"></i></div>
+      <span class="mono">${v.pct_lo.toFixed(0)}–${v.pct_hi.toFixed(0)}%</span></div>
+      <div class="note" style="margin-top:-6px">AC in empty zones: <b class="mono">${(v.empty_kwh/1000).toFixed(1)} MWh</b> (${emp.toFixed(1)}%). Overcooling saving: <b class="mono">${(v.overcool_lo/1000).toFixed(1)}–${(v.overcool_hi/1000).toFixed(1)} MWh</b>. AC-weighted zone temperatures ${fl.includes('Floor7')?'19.5–22.2':'18.6–23.0'} °C.</div>`; }).join('')
+    + `<div class="legend"><span><i class="sw" style="background:var(--accent)"></i>empty-zone AC (measured)</span><span><i class="sw" style="background:var(--warn)"></i>plus overcooling (estimated, upper)</span></div>`;
+}
+
+function renderAll(){ plan(); feed(); pchart(); }
+$('#time').oninput = e => { t = +e.target.value; renderAll(); };
+$('#play').onclick = () => { if (playing){ clearInterval(playing); playing=null; $('#play').textContent='▶ Play'; return; }
+  if (t>=95) t=0; $('#play').textContent='❚❚ Pause';
+  playing = setInterval(() => { t++; if (t>95){ clearInterval(playing); playing=null; t=95; $('#play').textContent='▶ Play'; } $('#time').value=t; renderAll(); }, 220); };
+const seg = (a,b,fn) => { a.onclick = () => { a.setAttribute('aria-pressed','true'); b.setAttribute('aria-pressed','false'); fn(); }; };
+seg($('#r-base'),$('#r-anu'),()=>{run='baseline';plan();}); seg($('#r-anu'),$('#r-base'),()=>{run='anukul';plan();});
+seg($('#m-approve'),$('#m-auto'),()=>{auto=false;feed();}); seg($('#m-auto'),$('#m-approve'),()=>{auto=true;feed();});
+const tabs = [['#t-live','#v-live'],['#t-verify','#v-verify'],['#t-real','#v-real']];
+tabs.forEach(([tb,v]) => $(tb).onclick = () => { tabs.forEach(([a,b]) => { $(a).setAttribute('aria-selected', a===tb); $(b).hidden = a!==tb; }); });
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', renderAll);
+new MutationObserver(renderAll).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+ktable(); real(); renderAll();
+</script>
